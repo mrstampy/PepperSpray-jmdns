@@ -53,7 +53,7 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	public static final String SERVICE_TYPE = "_pepperspray._udp.local.";
 
 	/** The Constant DEFAULT_NAME. */
-	public static final String DEFAULT_NAME = "PepperSpray-core";
+	public static final String DEFAULT_NAME = "PepperSpray-jmdns";
 
 	private static JmDNS SERVER_DNS;
 	private static JmDNS CLIENT_DNS;
