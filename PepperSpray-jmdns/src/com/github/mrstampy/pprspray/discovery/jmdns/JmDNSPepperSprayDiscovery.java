@@ -55,18 +55,22 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	/** The Constant DEFAULT_NAME. */
 	public static final String DEFAULT_NAME = "PepperSpray-jmdns";
 
-	private static JmDNS DNS;
-
-	/** The Constant DISCOVERY. */
-	public static final JmDNSPepperSprayDiscovery DISCOVERY = new JmDNSPepperSprayDiscovery();
+	private static final JmDNS DNS;
 
 	static {
 		try {
+			DNS = JmDNS.create(SERVICE_TYPE);
 			initDns();
 		} catch (Exception e) {
 			log.error("Could not register/lookup service", e);
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * The Constructor.
+	 */
+	public JmDNSPepperSprayDiscovery() {
 	}
 
 	/*
@@ -226,6 +230,26 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 		return Collections.emptyList();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.github.mrstampy.pprspray.core.discovery.PepperSprayDiscoveryService
+	 * #getRegisteredPepperSprayServices
+	 * (com.github.mrstampy.pprspray.core.streamer.MediaStreamType)
+	 */
+	@Override
+	public List<ServiceInfo> getRegisteredPepperSprayServices(MediaStreamType type) {
+		String name = createServiceName(type);
+
+		//@formatter:off
+		return getRegisteredPepperSprayServices()
+				.stream()
+				.filter(t -> t.getName().equals(name))
+				.collect(Collectors.toList());
+		//@formatter:on
+	}
+
 	private boolean containsAddress(InetAddress[] inetAddresses, InetAddress address) {
 		//@formatter:off
 		return Arrays
@@ -236,8 +260,6 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	}
 
 	private static void initDns() throws IOException {
-		DNS = JmDNS.create(SERVICE_TYPE);
-
 		DNS.addServiceListener(SERVICE_TYPE, createServiceListener());
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -284,9 +306,6 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 				post(JmDNSDiscoveryEventType.ADDED, event);
 			}
 		};
-	}
-
-	private JmDNSPepperSprayDiscovery() {
 	}
 
 }
