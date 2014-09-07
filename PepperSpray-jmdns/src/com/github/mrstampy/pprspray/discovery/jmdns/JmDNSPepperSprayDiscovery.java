@@ -55,8 +55,7 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	/** The Constant DEFAULT_NAME. */
 	public static final String DEFAULT_NAME = "PepperSpray-jmdns";
 
-	private static JmDNS SERVER_DNS;
-	private static JmDNS CLIENT_DNS;
+	private static JmDNS DNS;
 
 	/** The Constant DISCOVERY. */
 	public static final JmDNSPepperSprayDiscovery DISCOVERY = new JmDNSPepperSprayDiscovery();
@@ -123,7 +122,7 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	public boolean registerPepperSprayService(KiSyChannel channel, String name) {
 		try {
 			name = isEmpty(name) ? DEFAULT_NAME : name;
-			SERVER_DNS.registerService(createServiceInfo(channel, name));
+			DNS.registerService(createServiceInfo(channel, name));
 			return true;
 		} catch (IOException e) {
 			log.error("Could not create PepperSpray service {} on port {}", name, channel.getPort(), e);
@@ -173,7 +172,7 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	public boolean unregisterPepperSprayService(KiSyChannel channel, String name) {
 		try {
 			name = isEmpty(name) ? DEFAULT_NAME : name;
-			SERVER_DNS.unregisterService(createServiceInfo(channel, name));
+			DNS.unregisterService(createServiceInfo(channel, name));
 			return true;
 		} catch (Exception e) {
 			log.error("Could not unregister PepperSpray service {} on port {}", name, channel.getPort(), e);
@@ -190,7 +189,7 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	 * #getRegisteredPepperSprayServices()
 	 */
 	public List<ServiceInfo> getRegisteredPepperSprayServices() {
-		return Arrays.asList(CLIENT_DNS.list(SERVICE_TYPE));
+		return Arrays.asList(DNS.list(SERVICE_TYPE));
 	}
 
 	/*
@@ -237,18 +236,16 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 	}
 
 	private static void initDns() throws IOException {
-		CLIENT_DNS = JmDNS.create(SERVICE_TYPE);
-		SERVER_DNS = JmDNS.create();
+		DNS = JmDNS.create(SERVICE_TYPE);
 
-		CLIENT_DNS.addServiceListener(SERVICE_TYPE, createServiceListener());
+		DNS.addServiceListener(SERVICE_TYPE, createServiceListener());
 
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				try {
 					post(JmDNSDiscoveryEventType.SHUTDOWN, null);
 
-					CLIENT_DNS.close();
-					SERVER_DNS.close();
+					DNS.close();
 				} catch (IOException e) {
 					log.error("Unexpected exception", e);
 				}
@@ -283,7 +280,7 @@ public class JmDNSPepperSprayDiscovery implements PepperSprayDiscoveryService<Se
 			public void serviceAdded(ServiceEvent event) {
 				log.debug("Added: {}", event.getInfo());
 
-				SERVER_DNS.requestServiceInfo(SERVICE_TYPE, event.getName());
+				DNS.requestServiceInfo(SERVICE_TYPE, event.getName());
 				post(JmDNSDiscoveryEventType.ADDED, event);
 			}
 		};
